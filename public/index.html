@@ -75,7 +75,7 @@
                 <h2>Chart</h2>
                 <p>
                     <!-- A11y Change: Add appropriate alt text for the chart canvas -->
-                    <canvas id="myChart" width="400" height="400" aria-label="Budget Chart"></canvas>
+                    <canvas id="Charts" width="300" height="300" aria-label="Budget Chart"></canvas>
                 </p>
             </section>
 
@@ -108,16 +108,30 @@
                 labels: []
             };
 
+        // function createChart() {
+        //     var ctx = document.getElementById('Charts').getContext('2d');
+        //     var myPieChart = new Chart(ctx, {
+        //         type: 'pie',
+        //         data: dataSource
+        //     });
+        // }
+
         function createChart() {
-            var ctx = document.getElementById('myChart').getContext('2d');
+            var ctx = document.getElementById('Charts').getContext('2d');
             var myPieChart = new Chart(ctx, {
                 type: 'pie',
-                data: dataSource
+                data: dataSource,
+                options: {
+                maintainAspectRatio: false, // Disable the aspect ratio
+                responsive: true, // Make the chart responsive
+                width: 300, // Set the desired width
+                height: 300, // Set the desired height
+                },
             });
         }
 
         function getBudget() {
-            axios.get('http://localhost:3000/budget')
+            axios.get('/budget')
             .then(function (res) {
                 for (var i = 0; i < res.data.myBudget.length; i++) {
                     dataSource.datasets[0].data[i] = res.data.myBudget[i].budget;
