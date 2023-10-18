@@ -90,6 +90,19 @@
                     because they know it is all good and accounted for.
                 </p>
             </section>
+            
+            <form onsubmit="event.preventDefault(); addBudgetItem();">
+                <label for="title">Title:</label>
+                <input type="text" id="title" required><br>
+              
+                <label for="budget">Budget:</label>
+                <input type="number" id="budget" required><br>
+              
+                <label for="color">Color (Hexadecimal):</label>
+                <input type="text" id="color" pattern="#[0-9A-Fa-f]{6}" title="Enter a 6-digit hexadecimal color code (#RRGGBB)" required><br>
+              
+                <button type="submit">Add Budget Item</button>
+              </form>
 
             <section>
                 <h1>Free</h1>
@@ -164,7 +177,30 @@
             });
         }
 
-        getBudget();
+        //getBudget();
+
+        function addBudgetItem() {
+        const title = document.getElementById('title').value;
+        const budget = parseInt(document.getElementById('budget').value);
+        const color = document.getElementById('color').value;
+
+        // Validate data before making the request
+        if (title && budget && color) {
+            axios.post('/budget', { title, budget, color })
+            .then(function (response) {
+                console.log(response.data);
+                // Refresh the chart with updated data
+                getBudget();
+                updateChart();
+            })
+            .catch(function (error) {
+                console.error('Error adding budget item:', error);
+            });
+        } else {
+            console.error('Invalid data. Please check your input.');
+        }
+        }
+
     </script>
 
     <script src="http://d3js.org/d3.v3.min.js"></script>
@@ -208,6 +244,39 @@
 
         // Fetch data from the server using Axios
         axios.get('/budget')
+        .then(function (res) {
+            console.log('API Response:', res.data);
+            var data = res.data.myBudget;
+            updateChart(data);
+        })
+        .catch(function (error) {
+            console.error("Error fetching data:", error);
+        });
+
+        // function updateChart(data) {
+        //     /* ------- PIE SLICES ------- */
+        //     var slice = svg.select(".slices").selectAll("path.slice")
+        //         .data(pie(data), key);
+
+        //     slice.enter()
+        //         .insert("path")
+        //         .style("fill", function(d) { return color(d.data.title); })
+        //         .attr("class", "slice");
+
+        function updateChart(data) {
+
+        if (!data || data.length === 0) {
+            // Handle this case, maybe show a message or do something appropriate
+            return;
+        }
+        /* ------- PIE SLICES ------- */
+        svg.selectAll("*").remove();
+        var slice = svg.select(".slices").selectAll("path.slice")
+            .data(pie(data), key);
+
+
+        // Fetch data from the server using Axios
+        axios.get('/budget')
             .then(function (res) {
                 var data = res.data.myBudget;
                 updateChart(data);
@@ -216,15 +285,10 @@
                 console.error("Error fetching data:", error);
             });
 
-        function updateChart(data) {
-            /* ------- PIE SLICES ------- */
-            var slice = svg.select(".slices").selectAll("path.slice")
-                .data(pie(data), key);
-
-            slice.enter()
-                .insert("path")
-                .style("fill", function(d) { return color(d.data.title); })
-                .attr("class", "slice");
+        slice.enter()
+            .insert("path")
+            .style("fill", function(d) { return d.data.color; }) // Use the color field from the data
+            .attr("class", "slice");
 
             slice
                 .transition().duration(1000)
